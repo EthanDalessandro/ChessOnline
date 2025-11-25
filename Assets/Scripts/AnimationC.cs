@@ -8,7 +8,7 @@ public class AnimationC : MonoBehaviour {
 	public GameManager gm;
 	public GameObject target;
 	
-	void stopwalk()
+	/*void stopwalk()
 	{
 		gameObject.GetComponent<Animation>().CrossFade("idle");
 	}
@@ -22,6 +22,6 @@ public class AnimationC : MonoBehaviour {
 	void startwalk()
 	{
 		gameObject.GetComponent<Animation>().CrossFade("walking");
-	}
+	}*/
 	
 }

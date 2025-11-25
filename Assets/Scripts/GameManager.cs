@@ -27,16 +27,26 @@ public class GameManager : MonoBehaviour
     public GameObject target;
     public GameObject PlayerPrefab;
     public GameObject ToadPrefab;
+    
     private Connection pioconnection;
+    
     private List<Message> msgList = new List<Message>(); //  Messsage queue implementation
+    
     private bool joinedroom = false;
+    
+    public readonly int _playercount = 0;
 
     // UI stuff
     private Vector2 scrollPosition;
+    
     private ArrayList entries = new ArrayList();
+    
     private string inputField = "";
+    
     private Rect window = new Rect(10, 10, 300, 150);
+    
     private int toadspicked = 0;
+    
     private string infomsg = "";
 
     void Start()
@@ -184,7 +194,7 @@ public class GameManager : MonoBehaviour
         msgList.Clear();
     }
 
-    void OnMouseDown()
+    /*void OnMouseDown()
     {
         // this function responds to mouse clicks on the ground
         // it will send a move request to the server
@@ -205,7 +215,7 @@ public class GameManager : MonoBehaviour
             targetPosition = ray.GetPoint(hitdist);
             pioconnection.Send("Move", targetPosition.x, targetPosition.z);
         }
-    }
+    }*/
 
 
     void OnGUI()
@@ -218,7 +228,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void HarvestAt(float posx, float posz)
+    /*public void HarvestAt(float posx, float posz)
     {
         pioconnection.Send("MoveHarvest", posx, posz);
     }
@@ -226,7 +236,7 @@ public class GameManager : MonoBehaviour
     public void TryPickup(string id)
     {
         pioconnection.Send("Pickup", id);
-    }
+    }*/
 
     void GlobalChatWindow(int id)
     {

@@ -9,13 +9,19 @@ public class ChessBoard : MonoBehaviour
     public float _tileSize = 1.0f;
 
     private ChessPiece[,] chessPieces;
+    
     private ChessPiece currentlySelectedPiece;
+    
     private List<Vector2Int> availableMoves = new();
+    
     private PieceTeam currentTurn = PieceTeam.White;
+    
     private List<GameObject> highlightObjects = new();
 
     private void Start()
     {
+        if (GameObject.Find("GameManager").GetComponent<GameManager>()._playercount != 2) return;
+        
         GenerateBoard();
         SpawnAllPieces();
     }
@@ -220,21 +226,15 @@ public class ChessBoard : MonoBehaviour
         chessPieces[originalX, originalY] = null;
 
         pieceToMove.currentPosition = new Vector2Int(newX, newY);
-        pieceToMove.transform.position = new Vector3(newX * _tileSize, 1.0f, newY * _tileSize);
+
+        pieceToMove.transform.DOMove(new Vector3(newX * _tileSize, 1.0f, newY * _tileSize), .25f);
 
         currentTurn = (currentTurn == PieceTeam.White) ? PieceTeam.Black : PieceTeam.White;
         Debug.Log($"Turn switched to {currentTurn}");
 
         if (CheckForCheckmate(currentTurn))
         {
-            if (IsKingInCheck(currentTurn))
-            {
-                Debug.Log($"Checkmate! {((currentTurn == PieceTeam.White) ? PieceTeam.Black : PieceTeam.White)} wins!");
-            }
-            else
-            {
-                Debug.Log("Stalemate! Draw.");
-            }
+            Debug.Log(IsKingInCheck(currentTurn) ? $"Checkmate! {((currentTurn == PieceTeam.White) ? PieceTeam.Black : PieceTeam.White)} wins!" : "Stalemate! Draw.");
         }
         else if (IsKingInCheck(currentTurn))
         {
