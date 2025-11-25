@@ -27,26 +27,25 @@ public class GameManager : MonoBehaviour
     public GameObject target;
     public GameObject PlayerPrefab;
     public GameObject ToadPrefab;
-    
+
     private Connection pioconnection;
-    
+
     private List<Message> msgList = new List<Message>(); //  Messsage queue implementation
-    
+
     private bool joinedroom = false;
-    
-    public readonly int _playercount = 0;
+
 
     // UI stuff
     private Vector2 scrollPosition;
-    
+
     private ArrayList entries = new ArrayList();
-    
+
     private string inputField = "";
-    
+
     private Rect window = new Rect(10, 10, 300, 150);
-    
+
     private int toadspicked = 0;
-    
+
     private string infomsg = "";
 
     void Start()
