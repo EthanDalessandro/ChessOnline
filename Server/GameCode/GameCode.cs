@@ -43,7 +43,8 @@ namespace CleanPlayerIOServer {
                     player.IsReady = true;
                     
                     int readyCount = 0;
-                    foreach(Player p in Players) {
+                    foreach(Player p in Players) 
+					{
                         if (p.IsReady) readyCount++;
                     }
 
@@ -90,8 +91,6 @@ namespace CleanPlayerIOServer {
 					int targetX = message.GetInt(2);
 					int targetY = message.GetInt(3);
 
-					// Broadcast("Move", originalX, originalY, targetX, targetY);
-                    // Send to everyone EXCEPT the sender to avoid double movement
                     foreach(Player p in Players) {
                         if (p.Id != player.Id) {
                             p.Send("Move", originalX, originalY, targetX, targetY);

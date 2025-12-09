@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using PlayerIOClient;
@@ -9,7 +10,7 @@ public class ChessNetworkManager : MonoBehaviour
     public ChessBoard chessBoard;
 
     private Connection pioconnection;
-    private List<Message> msgList = new List<Message>();
+    private List<Message> msgList = new();
 
     public string localTeam = ""; // "White" or "Black"
     public bool isGameReady = false;
@@ -33,6 +34,11 @@ public class ChessNetworkManager : MonoBehaviour
 
         Application.runInBackground = true;
         Connect();
+    }
+
+    private void OnDestroy()
+    {
+        pioconnection.Disconnect();
     }
 
     void Connect()
@@ -160,7 +166,7 @@ public class ChessNetworkManager : MonoBehaviour
                     int nx = m.GetInt(2);
                     int ny = m.GetInt(3);
 
-                    if (chessBoard != null)
+                    if (chessBoard)
                     {
                         chessBoard.MovePieceRemote(ox, oy, nx, ny);
                     }

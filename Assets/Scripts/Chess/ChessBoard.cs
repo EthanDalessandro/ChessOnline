@@ -72,13 +72,45 @@ public class ChessBoard : MonoBehaviour
         }
     }
 
+    [System.Serializable]
+    public struct PieceSet
+    {
+        public GameObject king, queen, bishop, knight, rook, pawn;
+    }
+
+    public PieceSet whitePrefabs;
+    public PieceSet blackPrefabs;
+    public Material whiteMaterial;
+    public Material blackMaterial;
+
     private void SpawnPiece(PieceType type, PieceTeam team, int x, int z)
     {
-        GameObject pieceObject = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-        pieceObject.transform.parent = transform;
+        PieceSet set = (team == PieceTeam.White) ? whitePrefabs : blackPrefabs;
+        GameObject prefab = null;
 
+        switch (type)
+        {
+            case PieceType.King: prefab = set.king; break;
+            case PieceType.Queen: prefab = set.queen; break;
+            case PieceType.Bishop: prefab = set.bishop; break;
+            case PieceType.Knight: prefab = set.knight; break;
+            case PieceType.Rook: prefab = set.rook; break;
+            case PieceType.Pawn: prefab = set.pawn; break;
+        }
+
+        GameObject pieceObject;
+        if (prefab != null)
+        {
+            pieceObject = Instantiate(prefab);
+        }
+        else
+        {
+            pieceObject = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            pieceObject.transform.localScale = new Vector3(0.5f, 1f, 0.5f);
+        }
+
+        pieceObject.transform.parent = transform;
         pieceObject.transform.position = new Vector3(x * _tileSize, 1.0f, z * _tileSize);
-        pieceObject.transform.localScale = new Vector3(0.5f, 1f, 0.5f);
         pieceObject.name = $"{team}_{type}";
 
         ChessPiece pieceScript = null;
@@ -99,15 +131,21 @@ public class ChessBoard : MonoBehaviour
             chessPieces[x, z] = pieceScript;
         }
 
+        // Only tint if materials aren't handled by the prefab or if using primitive
         Renderer renderer = pieceObject.GetComponent<Renderer>();
-        renderer.material.color = team == PieceTeam.White ? Color.white : Color.grey;
+        if (renderer != null && prefab == null)
+        {
+            renderer.material.color = team == PieceTeam.White ? Color.white : Color.grey;
+        }
 
         pieceObject.layer = LayerMask.NameToLayer("Piece");
+        // Ensure child colliders/renderers are also on the right layer if using complex prefab
+        foreach (Transform child in pieceObject.transform) child.gameObject.layer = LayerMask.NameToLayer("Piece");
     }
 
     private void Update()
     {
-        if (ChessNetworkManager.Instance != null)
+        if (ChessNetworkManager.Instance)
         {
             if (!ChessNetworkManager.Instance.isGameReady) return;
             string myTeamStr = ChessNetworkManager.Instance.localTeam;
@@ -118,85 +156,77 @@ public class ChessBoard : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
 
-            if (Physics.Raycast(ray, out hit, 100))
+            if (!Physics.Raycast(ray, out RaycastHit hit, 100)) return;
+
+            if (hit.transform.gameObject.layer == LayerMask.NameToLayer("Piece"))
             {
-                if (hit.transform.gameObject.layer == LayerMask.NameToLayer("Piece"))
+                ChessPiece clickedPiece = hit.transform.GetComponent<ChessPiece>();
+                if (clickedPiece == null) return;
+                bool captured = false;
+                if (currentlySelectedPiece && currentlySelectedPiece.team != clickedPiece.team)
                 {
-                    ChessPiece clickedPiece = hit.transform.GetComponent<ChessPiece>();
-                    if (clickedPiece != null)
+                    if (currentlySelectedPiece.team == currentTurn)
                     {
-                        bool captured = false;
-                        if (currentlySelectedPiece != null && currentlySelectedPiece.team != clickedPiece.team)
+                        foreach (Vector2Int move in availableMoves)
                         {
-                            if (currentlySelectedPiece.team == currentTurn)
-                            {
-                                foreach (Vector2Int move in availableMoves)
-                                {
-                                    if (move == clickedPiece.currentPosition)
-                                    {
-                                        MovePiece(currentlySelectedPiece.currentPosition.x, currentlySelectedPiece.currentPosition.y, clickedPiece.currentPosition.x, clickedPiece.currentPosition.y);
-                                        currentlySelectedPiece = null;
-                                        availableMoves.Clear();
-                                        ClearHighlights();
-                                        captured = true;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-
-                        if (!captured)
-                        {
-                            if (clickedPiece.team == currentTurn)
-                            {
-                                if (currentlySelectedPiece != clickedPiece)
-                                {
-                                    ClearHighlights();
-                                    currentlySelectedPiece = clickedPiece;
-                                    availableMoves = GetLegalMoves(currentlySelectedPiece);
-                                    HighlightAllowedMoves(availableMoves);
-                                    Debug.Log($"Selected {currentlySelectedPiece.team} {currentlySelectedPiece.type} at {currentlySelectedPiece.currentPosition}");
-                                }
-                            }
-                            else
-                            {
-                                Debug.Log($"It is {currentTurn}'s turn.");
-                            }
-                        }
-                    }
-                }
-                else if (currentlySelectedPiece != null)
-                {
-                    int targetX = Mathf.RoundToInt(hit.point.x / _tileSize);
-                    int targetY = Mathf.RoundToInt(hit.point.z / _tileSize);
-
-                    Vector2Int targetPos = new(targetX, targetY);
-                    bool isValidMove = false;
-                    foreach (Vector2Int move in availableMoves)
-                    {
-                        if (move == targetPos)
-                        {
-                            isValidMove = true;
+                            if (move != clickedPiece.currentPosition) continue;
+                            MovePiece(currentlySelectedPiece.currentPosition.x,
+                                currentlySelectedPiece.currentPosition.y, clickedPiece.currentPosition.x,
+                                clickedPiece.currentPosition.y);
+                            currentlySelectedPiece = null;
+                            availableMoves.Clear();
+                            ClearHighlights();
+                            captured = true;
                             break;
                         }
                     }
+                }
 
-                    if (isValidMove)
-                    {
-                        MovePiece(currentlySelectedPiece.currentPosition.x, currentlySelectedPiece.currentPosition.y, targetX, targetY);
-                        currentlySelectedPiece = null;
-                        availableMoves.Clear();
-                        ClearHighlights();
-                    }
-                    else
-                    {
-                        Debug.Log("Invalid move");
-                        currentlySelectedPiece = null;
-                        availableMoves.Clear();
-                        ClearHighlights();
-                    }
+                if (captured) return;
+                if (clickedPiece.team == currentTurn)
+                {
+                    if (currentlySelectedPiece == clickedPiece) return;
+                    ClearHighlights();
+                    currentlySelectedPiece = clickedPiece;
+                    availableMoves = GetLegalMoves(currentlySelectedPiece);
+                    HighlightAllowedMoves(availableMoves);
+                    Debug.Log(
+                        $"Selected {currentlySelectedPiece.team} {currentlySelectedPiece.type} at {currentlySelectedPiece.currentPosition}");
+                }
+                else
+                {
+                    Debug.Log($"It is {currentTurn}'s turn.");
+                }
+            }
+            else if (currentlySelectedPiece)
+            {
+                int targetX = Mathf.RoundToInt(hit.point.x / _tileSize);
+                int targetY = Mathf.RoundToInt(hit.point.z / _tileSize);
+
+                Vector2Int targetPos = new(targetX, targetY);
+                bool isValidMove = false;
+                foreach (Vector2Int move in availableMoves)
+                {
+                    if (move != targetPos) continue;
+                    isValidMove = true;
+                    break;
+                }
+
+                if (isValidMove)
+                {
+                    MovePiece(currentlySelectedPiece.currentPosition.x, currentlySelectedPiece.currentPosition.y,
+                        targetX, targetY);
+                    currentlySelectedPiece = null;
+                    availableMoves.Clear();
+                    ClearHighlights();
+                }
+                else
+                {
+                    Debug.Log("Invalid move");
+                    currentlySelectedPiece = null;
+                    availableMoves.Clear();
+                    ClearHighlights();
                 }
             }
         }
@@ -211,7 +241,7 @@ public class ChessBoard : MonoBehaviour
     {
         ChessPiece pieceToMove = chessPieces[originalX, originalY];
 
-        if (pieceToMove == null)
+        if (!pieceToMove)
         {
             Debug.LogError($"No piece found at {originalX}, {originalY}");
             return;
@@ -224,7 +254,8 @@ public class ChessBoard : MonoBehaviour
 
             if (pieceToCapture.team != pieceToMove.team)
             {
-                Debug.Log($"{pieceToMove.team} {pieceToMove.type} captures {pieceToCapture.team} {pieceToCapture.type} at {newX}, {newY}");
+                Debug.Log(
+                    $"{pieceToMove.team} {pieceToMove.type} captures {pieceToCapture.team} {pieceToCapture.type} at {newX}, {newY}");
                 Destroy(pieceToCapture.gameObject);
             }
             else
@@ -246,14 +277,16 @@ public class ChessBoard : MonoBehaviour
 
         if (CheckForCheckmate(currentTurn))
         {
-            Debug.Log(IsKingInCheck(currentTurn) ? $"Checkmate! {((currentTurn == PieceTeam.White) ? PieceTeam.Black : PieceTeam.White)} wins!" : "Stalemate! Draw.");
+            Debug.Log(IsKingInCheck(currentTurn)
+                ? $"Checkmate! {((currentTurn == PieceTeam.White) ? PieceTeam.Black : PieceTeam.White)} wins!"
+                : "Stalemate! Draw.");
         }
         else if (IsKingInCheck(currentTurn))
         {
             Debug.Log($"{currentTurn} is in Check!");
         }
 
-        if (!isRemote && ChessNetworkManager.Instance != null)
+        if (!isRemote && ChessNetworkManager.Instance)
         {
             ChessNetworkManager.Instance.SendMove(originalX, originalY, newX, newY);
         }
@@ -277,6 +310,7 @@ public class ChessBoard : MonoBehaviour
             {
                 legalMoves.Add(move);
             }
+
             piece.currentPosition = originalPosition;
             chessPieces[originalPosition.x, originalPosition.y] = piece;
             chessPieces[move.x, move.y] = targetPiece;
@@ -294,13 +328,12 @@ public class ChessBoard : MonoBehaviour
         {
             for (int y = 0; y < BoardSize; y++)
             {
-                if (chessPieces[x, y] != null && chessPieces[x, y].type == PieceType.King && chessPieces[x, y].team == team)
-                {
-                    kingPos = new Vector2Int(x, y);
-                    kingFound = true;
-                    break;
-                }
+                if (!chessPieces[x, y] || chessPieces[x, y].type != PieceType.King || chessPieces[x, y].team != team) continue;
+                kingPos = new Vector2Int(x, y);
+                kingFound = true;
+                break;
             }
+
             if (kingFound) break;
         }
 
@@ -310,13 +343,11 @@ public class ChessBoard : MonoBehaviour
         {
             for (int y = 0; y < BoardSize; y++)
             {
-                if (chessPieces[x, y] != null && chessPieces[x, y].team != team)
+                if (!chessPieces[x, y] || chessPieces[x, y].team == team) continue;
+                List<Vector2Int> enemyMoves = chessPieces[x, y].GetAvailableMoves(chessPieces, BoardSize);
+                if (enemyMoves.Contains(kingPos))
                 {
-                    List<Vector2Int> enemyMoves = chessPieces[x, y].GetAvailableMoves(chessPieces, BoardSize);
-                    if (enemyMoves.Contains(kingPos))
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
         }
@@ -330,16 +361,16 @@ public class ChessBoard : MonoBehaviour
         {
             for (int y = 0; y < BoardSize; y++)
             {
-                if (chessPieces[x, y] != null && chessPieces[x, y].team == team)
+                if (!chessPieces[x, y] || chessPieces[x, y].team != team) continue;
+                
+                List<Vector2Int> legalMoves = GetLegalMoves(chessPieces[x, y]);
+                if (legalMoves.Count > 0)
                 {
-                    List<Vector2Int> legalMoves = GetLegalMoves(chessPieces[x, y]);
-                    if (legalMoves.Count > 0)
-                    {
-                        return false;
-                    }
+                    return false;
                 }
             }
         }
+
         return true;
     }
 
@@ -351,8 +382,8 @@ public class ChessBoard : MonoBehaviour
             highlight.transform.position = new Vector3(move.x * _tileSize, 0.5f, move.y * _tileSize);
             highlight.transform.localScale = Vector3.zero;
 
-            Renderer renderer = highlight.GetComponent<Renderer>();
-            renderer.material.color = new Color(0, 1, 0, 0.5f);
+            Renderer tempRenderer = highlight.GetComponent<Renderer>();
+            tempRenderer.material.color = new Color(0, 1, 0, 0.5f);
 
             highlight.transform.DOScale(new Vector3(0.5f, 0.5f, 0.5f), 0.2f).SetEase(Ease.OutBack);
 
@@ -366,6 +397,7 @@ public class ChessBoard : MonoBehaviour
         {
             Destroy(highlight);
         }
+
         highlightObjects.Clear();
     }
 }

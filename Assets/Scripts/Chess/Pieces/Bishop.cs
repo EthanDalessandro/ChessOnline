@@ -9,10 +9,10 @@ namespace Chess
         {
             List<Vector2Int> moves = new();
 
-            Vector2Int[] directions = new Vector2Int[]
+            Vector2Int[] directions =
             {
-                new Vector2Int(1, 1), new Vector2Int(1, -1),
-                new Vector2Int(-1, -1), new Vector2Int(-1, 1)
+                new (1, 1), new (1, -1),
+                new (-1, -1), new (-1, 1)
             };
 
             foreach (Vector2Int dir in directions)
@@ -25,7 +25,7 @@ namespace Chess
                     if (!IsWithinBounds(nextX, nextY, boardSize))
                         break;
 
-                    if (board[nextX, nextY] == null)
+                    if (!board[nextX, nextY])
                     {
                         moves.Add(new Vector2Int(nextX, nextY));
                     }
