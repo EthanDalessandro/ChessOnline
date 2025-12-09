@@ -1,0 +1,5 @@
+C:\Users\ethan.dalessandro\Downloads\PlayerIO SDK.s2fG8FIPhRjoY9VN8wEadg\CleanPlayerIOServer\bin\Debug\CleanPlayerIOServer.dll
+C:\Users\ethan.dalessandro\Downloads\PlayerIO SDK.s2fG8FIPhRjoY9VN8wEadg\CleanPlayerIOServer\bin\Debug\CleanPlayerIOServer.pdb
+C:\Users\ethan.dalessandro\Downloads\PlayerIO SDK.s2fG8FIPhRjoY9VN8wEadg\CleanPlayerIOServer\GameCode\obj\Debug\ResolveAssemblyReference.cache
+C:\Users\ethan.dalessandro\Downloads\PlayerIO SDK.s2fG8FIPhRjoY9VN8wEadg\CleanPlayerIOServer\GameCode\obj\Debug\CleanPlayerIOServer.dll
+C:\Users\ethan.dalessandro\Downloads\PlayerIO SDK.s2fG8FIPhRjoY9VN8wEadg\CleanPlayerIOServer\GameCode\obj\Debug\CleanPlayerIOServer.pdb

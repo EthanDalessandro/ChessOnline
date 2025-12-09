@@ -349,4 +349,9 @@ public class ChessBoard : MonoBehaviour
         }
         highlightObjects.Clear();
     }
+
+    private void CheckAllPiecesPlacements()
+    {
+        
+    }
 }
