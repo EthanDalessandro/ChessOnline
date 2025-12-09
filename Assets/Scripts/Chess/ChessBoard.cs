@@ -107,6 +107,14 @@ public class ChessBoard : MonoBehaviour
 
     private void Update()
     {
+        if (ChessNetworkManager.Instance != null)
+        {
+            if (!ChessNetworkManager.Instance.isGameReady) return;
+            string myTeamStr = ChessNetworkManager.Instance.localTeam;
+            PieceTeam myTeam = (myTeamStr == "White") ? PieceTeam.White : PieceTeam.Black;
+            if (currentTurn != myTeam) return;
+        }
+
         if (Input.GetMouseButtonDown(0))
         {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -194,7 +202,12 @@ public class ChessBoard : MonoBehaviour
         }
     }
 
-    public void MovePiece(int originalX, int originalY, int newX, int newY)
+    public void MovePieceRemote(int originalX, int originalY, int newX, int newY)
+    {
+        MovePiece(originalX, originalY, newX, newY, true);
+    }
+
+    public void MovePiece(int originalX, int originalY, int newX, int newY, bool isRemote = false)
     {
         ChessPiece pieceToMove = chessPieces[originalX, originalY];
 
@@ -204,6 +217,7 @@ public class ChessBoard : MonoBehaviour
             return;
         }
 
+        // Capture logic
         if (chessPieces[newX, newY] != null)
         {
             ChessPiece pieceToCapture = chessPieces[newX, newY];
@@ -237,6 +251,11 @@ public class ChessBoard : MonoBehaviour
         else if (IsKingInCheck(currentTurn))
         {
             Debug.Log($"{currentTurn} is in Check!");
+        }
+
+        if (!isRemote && ChessNetworkManager.Instance != null)
+        {
+            ChessNetworkManager.Instance.SendMove(originalX, originalY, newX, newY);
         }
     }
 
@@ -348,10 +367,5 @@ public class ChessBoard : MonoBehaviour
             Destroy(highlight);
         }
         highlightObjects.Clear();
-    }
-
-    private void CheckAllPiecesPlacements()
-    {
-        
     }
 }

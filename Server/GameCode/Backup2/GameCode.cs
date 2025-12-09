@@ -39,13 +39,19 @@ namespace CleanPlayerIOServer {
 			switch(message.Type) 
 			{
                 case "PlayerReady":
-                    if (gameStarted) return;
+                    Console.WriteLine("DEBUG: Received PlayerReady from " + player.Id);
+                    if (gameStarted) 
+                    {
+                        Console.WriteLine("DEBUG: Game already started, ignoring.");
+                        return;
+                    }
                     player.IsReady = true;
                     
                     int readyCount = 0;
                     foreach(Player p in Players) {
                         if (p.IsReady) readyCount++;
                     }
+                    Console.WriteLine("DEBUG: Ready Count: " + readyCount);
 
                     if (readyCount == 2)
                     {
@@ -90,13 +96,7 @@ namespace CleanPlayerIOServer {
 					int targetX = message.GetInt(2);
 					int targetY = message.GetInt(3);
 
-					// Broadcast("Move", originalX, originalY, targetX, targetY);
-                    // Send to everyone EXCEPT the sender to avoid double movement
-                    foreach(Player p in Players) {
-                        if (p.Id != player.Id) {
-                            p.Send("Move", originalX, originalY, targetX, targetY);
-                        }
-                    }
+					Broadcast("Move", originalX, originalY, targetX, targetY);
 
 					currentTurn = (currentTurn == "White") ? "Black" : "White";
 					break;

@@ -1,0 +1,7 @@
+c:\Projet Unity\ChessOnline\Server\GameCode\obj\Debug\CleanPlayerIOServer.dll
+c:\Projet Unity\ChessOnline\Server\GameCode\obj\Debug\CleanPlayerIOServer.pdb
+C:\Projet Unity\ChessOnline\Server\bin\Debug\CleanPlayerIOServer.dll
+C:\Projet Unity\ChessOnline\Server\bin\Debug\CleanPlayerIOServer.pdb
+C:\Projet Unity\ChessOnline\Server\GameCode\obj\Debug\CleanPlayerIOServer.csproj.AssemblyReference.cache
+C:\Projet Unity\ChessOnline\Server\GameCode\obj\Debug\CleanPlayerIOServer.csproj.CoreCompileInputs.cache
+C:\Projet Unity\ChessOnline\Server\GameCode\obj\Debug\CleanPla.B19D795F.Up2Date
